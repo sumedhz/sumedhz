@@ -1,10 +1,120 @@
-- 👋 Hi, I’m sumedh jadhav
-- 👀 I’m interested in programming
-- 🌱 I’m currently learning css | html | javascipt | nodeJS |reactJS | mogoDB |
-- 💞️ I’m looking for an internship
-- 📫  
 
-<!---
-sumedhz/sumedhz is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-You can click the Preview link to take a look at your changes.
---->
+$strings: (
+	"hii there!"
+	"i'm sumedh jadhav"
+	"codeaddict"
+);
+
+
+$durCharFwd: 0.10;
+$durFullGap: 2.00; 
+$durCharBwd: 0.08; 
+$durDoneGap: 1.00; 
+$charCount: 0; $durTotal: 0;
+@each $string in $strings {
+	$charCount: $charCount + str-length($string);
+	$durTotal: $durTotal
+		+ (str-length($string) * ($durCharFwd + $durCharBwd))
+		+ $durFullGap + $durDoneGap;
+}
+@function percent($string, $letter, $modifier) {
+	$stringsPast: $string - 1; $time: 0;
+	@while $stringsPast > 0 {
+		$time: $time
+			+ (($durCharFwd + $durCharBwd) * (str-length(nth($strings, $stringsPast))))
+			+ $durFullGap + $durDoneGap;
+		$stringsPast: $stringsPast - 1;
+	}
+	@if $letter <= str-length(nth($strings, $string)) {
+		$time: $time
+			+ ($durCharFwd * ($letter - 1));
+	} @else {
+		$time: $time
+			+ ($durCharFwd * str-length(nth($strings, $string)))
+			+ $durFullGap
+			+ ($durCharBwd * ($letter - str-length(nth($strings, $string))));
+	}
+	@return ($time / $durTotal * 100 + $modifier) + "%";
+}
+$currentPercentage: 0;
+// now THIS is where the magic happens... ✨
+@keyframes typed {
+	@for $i from 1 through length($strings) {
+		// @for $j from 1 through (str-length(nth($strings, $i)) * 2 - 1) {
+		@for $j from 1 through (str-length(nth($strings, $i)) * 2) {
+			/* string #{$i}, char #{$j} */
+			@if $j < str-length(nth($strings, $i)) * 2 { // not last character deleted
+				#{percent($i, $j, 0)}, #{percent($i, $j+1, -0.001)} {
+					@if $j <= str-length(nth($strings, $i)) {
+						content: quote(#{str_slice(nth($strings, $i), 1, $j)});
+					} @else {
+						content: quote(#{str_slice(nth($strings, $i), 1, str-length(nth($strings, $i)) - ($j - str-length(nth($strings, $i))))});
+					}
+				}
+			} @else {
+				@if $i < length($strings) { // not last string
+					#{percent($i, $j, 0)}, #{percent($i+1, 1, -0.001)} {
+						content: "​"; 
+					}
+				} @else { // last string
+					#{percent($i, $j, 0)}, 100% {
+						content: "​"; 
+					}
+				}
+			}
+		}
+	}
+}
+@keyframes beam-blink {
+	75% { border-color: transparent; }
+}
+* { backface-visibility: hidden; }
+html, body { height: 100%; }
+body {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #000;
+	background-image: 
+		radial-gradient(rgba(#fff, 0.125), rgba(#fff, 0)),
+		linear-gradient(to bottom, #000, #000 2px, #111 3px);
+	background-repeat: repeat-y;
+	background-position: center center;
+	background-size: cover, 100% 3px;
+	font-size: calc(10px + 2vw);
+	font-family: 'VT323', monospace, sans-serif;
+	color: #3f3; // hacker green
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	&::after {
+		content: "​"; 
+		position: relative;
+		top: -13px;
+		@media (max-width: 575px) { top: -33px; }
+		display: inline-block;
+		padding-right: 3px;
+		padding-right: calc(3px + 0.1vw);
+		border-right: 10px solid rgba(#3f3, 0.75);
+		border-right: calc(1.1vw + 4px) solid rgba(#3f3, 0.75);
+		text-shadow: 0 0 5px rgba(51, 255, 51, 0.75);
+		white-space: nowrap;
+		animation: typed #{$durTotal + "s"} linear 1s infinite, beam-blink 1s infinite;
+	}
+	&::before { 
+		content: "#{length($strings)} strings / #{$charCount} chars / #{$durTotal}s duration";
+		@media (max-width: 575px) {
+			content: "#{length($strings)} strings \A #{$charCount} chars \A #{$durTotal}s duration";
+		}
+		display: block;
+		position: absolute;
+		bottom: 0;
+		width: 100%;
+		padding: 3px 0;
+		background: #00f; // aquaman blue
+		color: #fff; // Brandon-McConnell white
+		text-align: center;
+		font-size: 18px;
+		letter-spacing: 0.7px;
+		white-space: pre-wrap;
+	}
+}
